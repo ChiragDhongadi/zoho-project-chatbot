@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.db-journal
+*.sqlite3
+.env
+.venv/
+env/
+venv/
+ENV/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.vscode/
+.idea/
