@@ -42,7 +42,7 @@ graph TD
         ReadTools <--> |Auto-refreshed Access Token| Zoho[Zoho Projects API]
         WriteTools <--> |Auto-refreshed Access Token| Zoho
     end
-
+```
 
 ---
 
@@ -143,18 +143,5 @@ To connect your chatbot to Zoho Projects API in the Indian region, follow these 
 - **Zoho Portals**: The Zoho Projects API operates hierarchically under a `portal_id`. If a user belongs to multiple portals, the client defaults to selecting the first active portal.
 - **In-Memory Checkpointing**: Short-term conversational state memory utilizes LangGraph's in-memory `MemorySaver`. Restarting the FastAPI server will wipe short-term memory histories, while long-term preference memory (persisted in SQLite) will remain safe.
 - **Offline Refresh Token**: In production, Zoho only sends a `refresh_token` during the *very first* OAuth consent approval. Subsequent logins by the same user will omit the refresh token. We force `prompt=consent` to guarantee a fresh token exchange, but in enterprise settings, database credential synchronization is recommended.
-```
 
----
 
-### What to do next:
-
-1. Save `README.md` at the root of your project directory.
-2. In your main terminal, stop uvicorn or open a new git shell, and run your final commit:
-   ```powershell
-   git add .
-   git commit -m "docs: complete comprehensive setup guide and system documentation"
-   git push
-   ```
-
-And with that, your entire assignment is **complete, validated, wowed, and pushed to your remote repository**! Let me know when you've done this, and we will summarize the incredible work we did today!
