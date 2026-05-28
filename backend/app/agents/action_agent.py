@@ -36,7 +36,8 @@ async def action_agent_node(state: AgentState, config) -> dict:
     messages = state.get("messages", [])
     action_confirmed = state.get("action_confirmed")
     pending_action = state.get("pending_action")
-
+    lt_memory = state.get("long_term_memory") or ""
+    full_prompt = SYSTEM_PROMPT + "\n" + lt_memory
 
     # FLOW A: USER HAS CONFIRMED THE PENDING ACTION
 
@@ -63,7 +64,7 @@ async def action_agent_node(state: AgentState, config) -> dict:
             name=tool_name
         )
 
-        agent_messages = [SystemMessage(content=SYSTEM_PROMPT)] + list(messages) + [dummy_ai, tool_msg]
+        agent_messages = [SystemMessage(content=full_prompt)] + list(messages) + [dummy_ai, tool_msg]
         
         final_summary = await model.ainvoke(agent_messages, config)
 
@@ -88,7 +89,7 @@ async def action_agent_node(state: AgentState, config) -> dict:
     
     # FLOW C: LLM ANALYZING USER QUERY & SELECTING TOOL
 
-    agent_messages = [SystemMessage(content=SYSTEM_PROMPT)] + list(messages)
+    agent_messages = [SystemMessage(content=full_prompt)] + list(messages)
     response = await action_agent_llm.ainvoke(agent_messages, config)
 
 

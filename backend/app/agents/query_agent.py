@@ -44,7 +44,9 @@ async def query_agent_node(state: AgentState, config) -> dict:
     Passes current message logs to ChatGroq, executes tool requests, and appends responses.
     """
     messages = state["messages"]
-    agent_messages = [SystemMessage(content=SYSTEM_PROMPT)] + list(messages)
+    lt_memory = state.get("long_term_memory") or ""
+    full_prompt = SYSTEM_PROMPT + "\n" + lt_memory
+    agent_messages = [SystemMessage(content=full_prompt)] + list(messages)
 
     response = await query_agent_llm.ainvoke(agent_messages, config)
     new_messages = [response]
