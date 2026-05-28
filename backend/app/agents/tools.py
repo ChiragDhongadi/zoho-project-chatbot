@@ -17,7 +17,7 @@ async def list_projects(config: RunnableConfig) -> str:
     db = config["configurable"].get("db")
     
     client = ZohoClient(session_id, db)
-    
+
     try:
         projects = await client.list_projects()
 
@@ -156,3 +156,116 @@ async def get_task_utilisation(
 
     except Exception as e:
         return f"Error fetching task utilization: {str(e)}"
+
+
+
+# WRITE TOOLS (Action Agent Tools - Intercepted by HIL)
+
+@tool
+async def create_task(
+    project_id: str,
+    name: str,
+    description: Optional[str] = None,
+    owner_id: Optional[str] = None,
+    due_date: Optional[str] = None,
+    priority: Optional[str] = None,
+    config: RunnableConfig = None
+) -> str:
+    """
+    Create a new task under a specific Zoho project.
+    Use this when creating tasks on approval.
+    Arguments:
+      - project_id: Zoho Project ID (Required)
+      - name: Task title/name (Required)
+      - description: Task description
+      - owner_id: Zoho User ID to assign this task to
+      - due_date: Format: MM-DD-YYYY
+      - priority: Task priority: 'None', 'Low', 'Medium', 'High'
+    """
+    session_id = config["configurable"].get("session_id")
+    db = config["configurable"].get("db")
+    
+    client = ZohoClient(session_id, db)
+
+    task_payload = {"name": name}
+    if description:
+        task_payload["description"] = description
+    if owner_id:
+        task_payload["person_responsible"] = owner_id
+    if due_date:
+        task_payload["due_date"] = due_date
+    if priority:
+        task_payload["priority"] = priority
+
+    try:
+        task = await client.create_task(project_id, task_payload)
+        return f"SUCCESS: Task '{task.get('name')}' created successfully. Task ID: {task.get('id')}."
+    except Exception as e:
+        return f"ERROR: Failed to create task: {str(e)}"
+
+@tool
+async def update_task(
+    project_id: str,
+    task_id: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    owner_id: Optional[str] = None,
+    due_date: Optional[str] = None,
+    priority: Optional[str] = None,
+    config: RunnableConfig = None
+) -> str:
+    """
+    Update details of an existing task under a specific project.
+    Use this when updating or assigning a task.
+    Arguments:
+      - project_id: Zoho Project ID (Required)
+      - task_id: Zoho Task ID to modify (Required)
+      - name: New name for the task
+      - description: New description
+      - owner_id: New assignee Zoho User ID
+      - due_date: Format: MM-DD-YYYY
+      - priority: Task priority: 'None', 'Low', 'Medium', 'High'
+    """
+    session_id = config["configurable"].get("session_id")
+    db = config["configurable"].get("db")
+    
+    client = ZohoClient(session_id, db)
+    
+    task_payload = {}
+    if name:
+        task_payload["name"] = name
+    if description:
+        task_payload["description"] = description
+    if owner_id:
+        task_payload["person_responsible"] = owner_id
+    if due_date:
+        task_payload["due_date"] = due_date
+    if priority:
+        task_payload["priority"] = priority
+
+    try:
+        task = await client.update_task(project_id, task_id, task_payload)
+        return f"SUCCESS: Task '{task_id}' updated successfully."
+    except Exception as e:
+        return f"ERROR: Failed to update task: {str(e)}"
+
+@tool
+async def delete_task(
+    project_id: str,
+    task_id: str,
+    config: RunnableConfig = None
+) -> str:
+    """
+    Delete a task under a specific project by its ID.
+    Use this when deleting a task on approval.
+    """
+    session_id = config["configurable"].get("session_id")
+    db = config["configurable"].get("db")
+    
+    client = ZohoClient(session_id, db)
+    try:
+        await client.delete_task(project_id, task_id)
+        return f"SUCCESS: Task '{task_id}' has been permanently deleted."
+        
+    except Exception as e:
+        return f"ERROR: Failed to delete task: {str(e)}"
