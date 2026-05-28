@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
 import ChatWindow from './components/ChatWindow';
+import Navbar from './components/Navbar';
 
 function App() {
   const [sessionId, setSessionId] = useState(localStorage.getItem('session_id') || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+    if (document.body) document.body.scrollTop = 0;
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+
     // 1. Check if the URL has an active session_id query parameter (from Zoho redirect!)
     const params = new URLSearchParams(window.location.search);
     const urlSession = params.get('session_id');
@@ -34,10 +39,12 @@ function App() {
   }
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+    <div className="app-container">
       {/* Background Decorative Glowing Orbs */}
       <div className="glow-orb w-[400px] h-[400px] bg-indigo-600 top-[-100px] left-[-100px]"></div>
       <div className="glow-orb w-[500px] h-[500px] bg-purple-600 bottom-[-150px] right-[-100px]" style={{ animationDelay: '3s' }}></div>
+
+      <Navbar />
 
       {sessionId ? (
         <ChatWindow sessionId={sessionId} onLogout={handleLogout} />

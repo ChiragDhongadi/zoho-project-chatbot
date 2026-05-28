@@ -14,7 +14,7 @@ class ZohoClient:
     def __init__(self, session_id: str, db: aiosqlite.Connection):
         self.session_id = session_id
         self.db = db
-        self.base_url = f"https://projectsapi.{settings.ZOHO_DOMAIN}/v3"
+        self.base_url = f"https://projectsapi.{settings.ZOHO_DOMAIN}/api/v3"
         self.token_url = f"https://accounts.{settings.ZOHO_DOMAIN}/oauth/v2/token"
         self._portal_id: Optional[str] = None
 
@@ -130,8 +130,8 @@ class ZohoClient:
         if self._portal_id:
             return self._portal_id
 
-        portals_data = await self._request("GET", "/portals/")
-        portals = portals_data.get("portals", [])
+        portals_data = await self._request("GET", "portals")
+        portals = portals_data if isinstance(portals_data, list) else portals_data.get("portals", [])
         
         if not portals:
             raise ValueError("No Zoho Projects portals found for this authenticated user.")
@@ -145,8 +145,8 @@ class ZohoClient:
     async def list_projects(self) -> List[Dict[str, Any]]:
         """Lists all projects for the authenticated user."""
         portal_id = await self.get_portal_id()
-        data = await self._request("GET", f"/portal/{portal_id}/projects/")
-        return data.get("projects", [])
+        data = await self._request("GET", f"portal/{portal_id}/projects")
+        return data if isinstance(data, list) else data.get("projects", [])
 
     async def list_tasks(
         self, 
@@ -165,42 +165,42 @@ class ZohoClient:
         if due_date:
             params["due_date"] = due_date
             
-        data = await self._request("GET", f"/portal/{portal_id}/projects/{project_id}/tasks/", params=params)
-        return data.get("tasks", [])
+        data = await self._request("GET", f"portal/{portal_id}/projects/{project_id}/tasks", params=params)
+        return data if isinstance(data, list) else data.get("tasks", [])
 
     async def get_task_details(self, project_id: str, task_id: str) -> Dict[str, Any]:
         """Fetch details of a single task by ID."""
         portal_id = await self.get_portal_id()
-        data = await self._request("GET", f"/portal/{portal_id}/projects/{project_id}/tasks/{task_id}/")
-        tasks = data.get("tasks", [])
+        data = await self._request("GET", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}")
+        tasks = data if isinstance(data, list) else data.get("tasks", [])
         return tasks[0] if tasks else {}
 
 
     async def create_task(self, project_id: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new task in a given project."""
         portal_id = await self.get_portal_id()
-        data = await self._request("POST", f"/portal/{portal_id}/projects/{project_id}/tasks/", json_data=task_data)
-        tasks = data.get("tasks", [])
+        data = await self._request("POST", f"portal/{portal_id}/projects/{project_id}/tasks", json_data=task_data)
+        tasks = data if isinstance(data, list) else data.get("tasks", [])
         return tasks[0] if tasks else {}
 
     async def update_task(self, project_id: str, task_id: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
         """Update a task (status, assignee, due date, or priority)."""
         portal_id = await self.get_portal_id()
-        data = await self._request("PUT", f"/portal/{portal_id}/projects/{project_id}/tasks/{task_id}/", json_data=task_data)
-        tasks = data.get("tasks", [])
+        data = await self._request("PUT", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}", json_data=task_data)
+        tasks = data if isinstance(data, list) else data.get("tasks", [])
         return tasks[0] if tasks else {}
 
     async def delete_task(self, project_id: str, task_id: str) -> bool:
         """Delete a task (requires Human-In-The-Loop confirmation in agent logic)."""
         portal_id = await self.get_portal_id()
-        await self._request("DELETE", f"/portal/{portal_id}/projects/{project_id}/tasks/{task_id}/")
+        await self._request("DELETE", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}")
         return True
 
     async def list_project_members(self) -> List[Dict[str, Any]]:
         """Get all members of the active portal/projects."""
         portal_id = await self.get_portal_id()
-        data = await self._request("GET", f"/portal/{portal_id}/users/")
-        return data.get("users", [])
+        data = await self._request("GET", f"portal/{portal_id}/users")
+        return data if isinstance(data, list) else data.get("users", [])
 
     async def get_task_utilisation(self, project_id: str) -> Dict[str, Any]:
         """

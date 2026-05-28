@@ -51,7 +51,13 @@ async def action_agent_node(state: AgentState, config) -> dict:
 
         print(f"[Action Agent] User CONFIRMED. Executing write tool: {tool_name} with arguments: {tool_args}")
 
-        tool_output = await tool_func.ainvoke(tool_args, config)
+        import inspect
+        func_to_call = tool_func.coroutine if tool_func.coroutine else tool_func.func
+        sig = inspect.signature(func_to_call)
+        call_args = dict(tool_args)
+        if "config" in sig.parameters:
+            call_args["config"] = config
+        tool_output = await func_to_call(**call_args)
 
         dummy_ai = AIMessage(
             content="", 

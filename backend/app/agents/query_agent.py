@@ -61,7 +61,13 @@ async def query_agent_node(state: AgentState, config) -> dict:
                 tool_func = READ_TOOLS[tool_name]
                 print(f"[Query Agent] Executing read tool: {tool_name} with arguments: {tool_args}")
                 
-                tool_output = await tool_func.ainvoke(tool_args, config)
+                import inspect
+                func_to_call = tool_func.coroutine if tool_func.coroutine else tool_func.func
+                sig = inspect.signature(func_to_call)
+                call_args = dict(tool_args)
+                if "config" in sig.parameters:
+                    call_args["config"] = config
+                tool_output = await func_to_call(**call_args)
 
                 tool_msg = ToolMessage(
                     content=str(tool_output),

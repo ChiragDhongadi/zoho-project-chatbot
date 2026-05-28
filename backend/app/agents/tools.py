@@ -2,12 +2,56 @@ import json
 from typing import Optional
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
+from langchain_core.pydantic_v1 import BaseModel, Field
 from backend.app.zoho.client import ZohoClient
+
+
+# Pydantic Input Schemas for all 8 Tools (Hiding config parameter)
+
+class ListProjectsInput(BaseModel):
+    pass
+
+class ListTasksInput(BaseModel):
+    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    status: Optional[str] = Field(None, description="Filter by status: e.g. 'open' or 'closed'")
+    assignee_id: Optional[str] = Field(None, description="Zoho Owner/User ID to filter tasks by assignee")
+    due_date: Optional[str] = Field(None, description="Filter by due date format (MM-DD-YYYY)")
+
+class GetTaskDetailsInput(BaseModel):
+    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    task_id: str = Field(..., description="Zoho Task ID (Required)")
+
+class ListProjectMembersInput(BaseModel):
+    pass
+
+class GetTaskUtilisationInput(BaseModel):
+    project_id: str = Field(..., description="Zoho Project ID (Required)")
+
+class CreateTaskInput(BaseModel):
+    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    name: str = Field(..., description="Task title/name (Required)")
+    description: Optional[str] = Field(None, description="Task description")
+    owner_id: Optional[str] = Field(None, description="Zoho User ID to assign this task to")
+    due_date: Optional[str] = Field(None, description="Format: MM-DD-YYYY")
+    priority: Optional[str] = Field(None, description="Task priority: 'None', 'Low', 'Medium', 'High'")
+
+class UpdateTaskInput(BaseModel):
+    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    task_id: str = Field(..., description="Zoho Task ID to modify (Required)")
+    name: Optional[str] = Field(None, description="New name for the task")
+    description: Optional[str] = Field(None, description="New description")
+    owner_id: Optional[str] = Field(None, description="New assignee Zoho User ID")
+    due_date: Optional[str] = Field(None, description="Format: MM-DD-YYYY")
+    priority: Optional[str] = Field(None, description="Task priority: 'None', 'Low', 'Medium', 'High'")
+
+class DeleteTaskInput(BaseModel):
+    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    task_id: str = Field(..., description="Zoho Task ID to delete (Required)")
 
 
 # READ-ONLY TOOLS (Query Agent Tools)
 
-@tool
+@tool(args_schema=ListProjectsInput)
 async def list_projects(config: RunnableConfig) -> str:
     """
     Fetch all active Zoho projects for the authenticated user.
@@ -32,7 +76,7 @@ async def list_projects(config: RunnableConfig) -> str:
     except Exception as e:
         return f"Error fetching projects: {str(e)}"
 
-@tool
+@tool(args_schema=ListTasksInput)
 async def list_tasks(
     project_id: str,
     status: Optional[str] = None,
@@ -43,10 +87,6 @@ async def list_tasks(
     """
     List tasks under a specific Zoho project with optional filters.
     Use this when listing tasks or looking up tasks.
-    Filters:
-      - status: e.g. 'open', 'closed'
-      - assignee_id: Zoho Owner User ID to filter tasks by assignee
-      - due_date: Filter by due date format (MM-DD-YYYY)
     """
     session_id = config["configurable"].get("session_id")
     db = config["configurable"].get("db")
@@ -71,7 +111,7 @@ async def list_tasks(
     except Exception as e:
         return f"Error listing tasks: {str(e)}"
 
-@tool
+@tool(args_schema=GetTaskDetailsInput)
 async def get_task_details(
     project_id: str,
     task_id: str,
@@ -97,7 +137,7 @@ async def get_task_details(
     except Exception as e:
         return f"Error fetching task details: {str(e)}"
 
-@tool
+@tool(args_schema=ListProjectMembersInput)
 async def list_project_members(config: RunnableConfig) -> str:
     """
     Retrieve all users and members of the Zoho Projects portal along with their roles and IDs.
@@ -122,7 +162,7 @@ async def list_project_members(config: RunnableConfig) -> str:
     except Exception as e:
         return f"Error fetching project members: {str(e)}"
 
-@tool
+@tool(args_schema=GetTaskUtilisationInput)
 async def get_task_utilisation(
     project_id: str,
     config: RunnableConfig
@@ -158,10 +198,9 @@ async def get_task_utilisation(
         return f"Error fetching task utilization: {str(e)}"
 
 
-
 # WRITE TOOLS (Action Agent Tools - Intercepted by HIL)
 
-@tool
+@tool(args_schema=CreateTaskInput)
 async def create_task(
     project_id: str,
     name: str,
@@ -174,13 +213,6 @@ async def create_task(
     """
     Create a new task under a specific Zoho project.
     Use this when creating tasks on approval.
-    Arguments:
-      - project_id: Zoho Project ID (Required)
-      - name: Task title/name (Required)
-      - description: Task description
-      - owner_id: Zoho User ID to assign this task to
-      - due_date: Format: MM-DD-YYYY
-      - priority: Task priority: 'None', 'Low', 'Medium', 'High'
     """
     session_id = config["configurable"].get("session_id")
     db = config["configurable"].get("db")
@@ -203,7 +235,7 @@ async def create_task(
     except Exception as e:
         return f"ERROR: Failed to create task: {str(e)}"
 
-@tool
+@tool(args_schema=UpdateTaskInput)
 async def update_task(
     project_id: str,
     task_id: str,
@@ -217,14 +249,6 @@ async def update_task(
     """
     Update details of an existing task under a specific project.
     Use this when updating or assigning a task.
-    Arguments:
-      - project_id: Zoho Project ID (Required)
-      - task_id: Zoho Task ID to modify (Required)
-      - name: New name for the task
-      - description: New description
-      - owner_id: New assignee Zoho User ID
-      - due_date: Format: MM-DD-YYYY
-      - priority: Task priority: 'None', 'Low', 'Medium', 'High'
     """
     session_id = config["configurable"].get("session_id")
     db = config["configurable"].get("db")
@@ -249,7 +273,7 @@ async def update_task(
     except Exception as e:
         return f"ERROR: Failed to update task: {str(e)}"
 
-@tool
+@tool(args_schema=DeleteTaskInput)
 async def delete_task(
     project_id: str,
     task_id: str,

@@ -42,7 +42,8 @@ async def router_node(state: AgentState) -> dict:
     if not messages:
         return {"messages": []}
         
-    last_msg = messages[-1].content
+    last_msg_obj = messages[-1]
+    last_msg = last_msg_obj[1] if isinstance(last_msg_obj, tuple) else last_msg_obj.content
     
     classification_response = await router_model.ainvoke([
         SystemMessage(content=ROUTER_SYSTEM_PROMPT),
@@ -77,7 +78,8 @@ async def route_decision(state: AgentState) -> Literal["query_agent", "action_ag
     if not messages:
         return "__end__"
         
-    last_msg = messages[-1].content
+    last_msg_obj = messages[-1]
+    last_msg = last_msg_obj[1] if isinstance(last_msg_obj, tuple) else last_msg_obj.content
     
     if len(messages) >= 2 and isinstance(messages[-1], AIMessage) and not messages[-1].tool_calls:
         if "general" in last_msg.lower() or any(w in last_msg.lower() for w in ["hi", "hello", "thanks"]):

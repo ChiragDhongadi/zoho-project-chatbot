@@ -11,11 +11,16 @@ function ChatWindow({ sessionId, onLogout }) {
     const [loading, setLoading] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
     const [userEmail, setUserEmail] = useState('');
-    const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
 
-    // Auto-scroll to bottom of thread on new messages
+    // Auto-scroll to bottom of thread on new messages using direct container scrolling
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     };
 
     useEffect(() => {
@@ -108,7 +113,7 @@ function ChatWindow({ sessionId, onLogout }) {
     };
 
     return (
-        <div className="z-10 w-[1000px] h-[640px] max-w-[95%] max-h-[90%] glass-card flex flex-col overflow-hidden animate-fade-in">
+        <div className="z-10 w-[1000px] flex-1 max-w-[95%] max-h-[600px] glass-card flex flex-col overflow-hidden animate-fade-in">
             {/* Active HIL Modal pop-up overlay */}
             <ConfirmDialog
                 action={pendingAction}
@@ -139,7 +144,7 @@ function ChatWindow({ sessionId, onLogout }) {
             </header>
 
             {/* Message Feed Logging Container */}
-            <main className="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-900/10">
+            <main ref={messagesContainerRef} className="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-900/10">
                 {messages.map((msg, idx) => (
                     <div
                         key={idx}
@@ -155,9 +160,11 @@ function ChatWindow({ sessionId, onLogout }) {
                             ? 'bg-indigo-600 text-white rounded-br-none shadow-md shadow-indigo-600/10'
                             : 'bg-slate-900/50 border border-white/5 rounded-bl-none text-slate-200'
                             }`}>
-                            <ReactMarkdown className="markdown-body prose prose-invert max-w-none">
-                                {msg.content}
-                            </ReactMarkdown>
+                            <div className="markdown-body prose prose-invert max-w-none">
+                                <ReactMarkdown>
+                                    {msg.content}
+                                </ReactMarkdown>
+                            </div>
                         </div>
 
                         {msg.role === 'user' && (
@@ -181,7 +188,6 @@ function ChatWindow({ sessionId, onLogout }) {
                         </div>
                     </div>
                 )}
-                <div ref={messagesEndRef} />
             </main>
 
             {/* Input Form Bar Container */}

@@ -13,6 +13,7 @@ ZOHO_AUTH_URL = f"https://accounts.{settings.ZOHO_DOMAIN}/oauth/v2/auth"
 ZOHO_TOKEN_URL = f"https://accounts.{settings.ZOHO_DOMAIN}/oauth/v2/token"
 
 SCOPES = [
+    "ZohoProjects.portals.READ",
     "ZohoProjects.projects.READ",
     "ZohoProjects.tasks.CREATE",
     "ZohoProjects.tasks.READ",

@@ -18,22 +18,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+html, body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
   min-width: 320px;
-  min-height: 100vh;
   background: radial-gradient(circle at 50% 50%, #151c33 0%, #090b11 100%);
   overflow: hidden;
 }
 
 #root {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 /* Glassmorphism Classes */
@@ -116,4 +113,16 @@ body {
   z-index: 0;
   animation: pulse-glow 8s infinite ease-in-out;
   pointer-events: none;
+}
+
+.app-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 20px;
+  box-sizing: border-box;
 }
