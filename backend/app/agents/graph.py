@@ -36,11 +36,11 @@ async def router_node(state: AgentState) -> dict:
     print("[Graph Node] Supervisor/Router entrypoint invoked.")
     
     if state.get("pending_action"):
-        return {"messages": []}
+        return {"action_confirmed": state.get("action_confirmed")}
 
     messages = state.get("messages", [])
     if not messages:
-        return {"messages": []}
+        return {"action_confirmed": state.get("action_confirmed")}
         
     last_msg_obj = messages[-1]
     last_msg = last_msg_obj[1] if isinstance(last_msg_obj, tuple) else last_msg_obj.content
@@ -61,7 +61,7 @@ async def router_node(state: AgentState) -> dict:
         chat_response = await router_model.ainvoke(chat_prompt)
         return {"messages": [chat_response]}
 
-    return {"messages": []}
+    return {"action_confirmed": state.get("action_confirmed")}
 
 # ROUTING EDGE DECISION
 

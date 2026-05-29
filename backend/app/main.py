@@ -139,7 +139,7 @@ async def chat_confirm(
     await compiled_graph.aupdate_state(config, update_payload)
 
     try:
-        resumed_state = await compiled_graph.ainvoke(None, config)
+        resumed_state = await compiled_graph.ainvoke(update_payload, config)
         
         messages = resumed_state.get("messages", [])
         ai_reply = "Operation completed."

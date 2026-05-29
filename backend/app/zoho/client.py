@@ -180,6 +180,9 @@ class ZohoClient:
         """Create a new task in a given project."""
         portal_id = await self.get_portal_id()
         data = await self._request("POST", f"portal/{portal_id}/projects/{project_id}/tasks", json_data=task_data)
+        # Zoho Projects v3 returns the created task dictionary directly in POST response!
+        if isinstance(data, dict) and "id" in data:
+            return data
         tasks = data if isinstance(data, list) else data.get("tasks", [])
         return tasks[0] if tasks else {}
 
@@ -187,6 +190,9 @@ class ZohoClient:
         """Update a task (status, assignee, due date, or priority)."""
         portal_id = await self.get_portal_id()
         data = await self._request("PUT", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}", json_data=task_data)
+        # Zoho Projects v3 returns the updated task dictionary directly in PUT response!
+        if isinstance(data, dict) and "id" in data:
+            return data
         tasks = data if isinstance(data, list) else data.get("tasks", [])
         return tasks[0] if tasks else {}
 
@@ -196,10 +202,14 @@ class ZohoClient:
         await self._request("DELETE", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}")
         return True
 
-    async def list_project_members(self) -> List[Dict[str, Any]]:
-        """Get all members of the active portal/projects."""
+    async def list_project_members(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get all members of the active portal or a specific project."""
         portal_id = await self.get_portal_id()
-        data = await self._request("GET", f"portal/{portal_id}/users")
+        if project_id:
+            endpoint = f"portal/{portal_id}/projects/{project_id}/users"
+        else:
+            endpoint = f"portal/{portal_id}/users"
+        data = await self._request("GET", endpoint)
         return data if isinstance(data, list) else data.get("users", [])
 
     async def get_task_utilisation(self, project_id: str) -> Dict[str, Any]:
@@ -209,8 +219,8 @@ class ZohoClient:
         """
         portal_id = await self.get_portal_id()
         tasks = await self.list_tasks(project_id)
-        members = await self.list_project_members()
-        member_map = {str(m["id"]): m["name"] for m in members}
+        members = await self.list_project_members(project_id)
+        member_map = {str(m["id"]): (m.get("full_name") or m.get("display_name") or m.get("name") or f"User {m['id']}") for m in members}
         utilisation = {}
         unassigned_count = 0
         

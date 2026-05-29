@@ -22,7 +22,7 @@ class GetTaskDetailsInput(BaseModel):
     task_id: str = Field(..., description="Zoho Task ID (Required)")
 
 class ListProjectMembersInput(BaseModel):
-    pass
+    project_id: Optional[str] = Field(None, description="Filter members by specific Zoho Project ID (Optional)")
 
 class GetTaskUtilisationInput(BaseModel):
     project_id: str = Field(..., description="Zoho Project ID (Required)")
@@ -138,9 +138,12 @@ async def get_task_details(
         return f"Error fetching task details: {str(e)}"
 
 @tool(args_schema=ListProjectMembersInput)
-async def list_project_members(config: RunnableConfig) -> str:
+async def list_project_members(
+    project_id: Optional[str] = None,
+    config: RunnableConfig = None
+) -> str:
     """
-    Retrieve all users and members of the Zoho Projects portal along with their roles and IDs.
+    Retrieve all users and members of the Zoho Projects portal or a specific project along with their roles and IDs.
     Use this when you need to find an assignee's ID or list members.
     """
     session_id = config["configurable"].get("session_id")
@@ -149,14 +152,18 @@ async def list_project_members(config: RunnableConfig) -> str:
     client = ZohoClient(session_id, db)
 
     try:
-        members = await client.list_project_members()
+        members = await client.list_project_members(project_id)
 
         if not members:
-            return "No portal members found."
+            return "No members found."
             
         formatted = []
         for m in members:
-            formatted.append(f"- Name: {m['name']} | ID: {m['id']} | Email: {m['email']} | Role: {m.get('role', 'Member')}")
+            name = m.get("full_name") or m.get("display_name") or m.get("name") or "Unknown"
+            email = m.get("email", "N/A")
+            role_val = m.get("role")
+            role_name = role_val.get("name") if isinstance(role_val, dict) else (role_val or "Member")
+            formatted.append(f"- Name: {name} | ID: {m['id']} | Email: {email} | Role: {role_name}")
         return "\n".join(formatted)
 
     except Exception as e:
