@@ -106,6 +106,8 @@ class ZohoClient:
                 response = await client.post(url, headers=headers, json=json_data)
             elif method.upper() == "PUT":
                 response = await client.put(url, headers=headers, json=json_data)
+            elif method.upper() == "PATCH":
+                response = await client.patch(url, headers=headers, json=json_data)
             elif method.upper() == "DELETE":
                 response = await client.delete(url, headers=headers, params=params)
             else:
@@ -172,8 +174,14 @@ class ZohoClient:
         """Fetch details of a single task by ID."""
         portal_id = await self.get_portal_id()
         data = await self._request("GET", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}")
-        tasks = data if isinstance(data, list) else data.get("tasks", [])
-        return tasks[0] if tasks else {}
+        if isinstance(data, dict):
+            if "id" in data:
+                return data
+            tasks = data.get("tasks", [])
+            return tasks[0] if tasks else {}
+        elif isinstance(data, list):
+            return data[0] if data else {}
+        return {}
 
 
     async def create_task(self, project_id: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -189,8 +197,8 @@ class ZohoClient:
     async def update_task(self, project_id: str, task_id: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
         """Update a task (status, assignee, due date, or priority)."""
         portal_id = await self.get_portal_id()
-        data = await self._request("PUT", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}", json_data=task_data)
-        # Zoho Projects v3 returns the updated task dictionary directly in PUT response!
+        data = await self._request("PATCH", f"portal/{portal_id}/projects/{project_id}/tasks/{task_id}", json_data=task_data)
+        # Zoho Projects v3 returns the updated task dictionary directly in PATCH response!
         if isinstance(data, dict) and "id" in data:
             return data
         tasks = data if isinstance(data, list) else data.get("tasks", [])

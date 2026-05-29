@@ -33,7 +33,7 @@ async def action_agent_node(state: AgentState, config) -> dict:
     Intercepts write tool calls, saves them as a pending action, and halts for user confirmation.
     If already confirmed, it executes the tool.
     """
-    messages = state.get("messages", [])
+    messages = state.get("messages") or []
     action_confirmed = state.get("action_confirmed")
     pending_action = state.get("pending_action")
     lt_memory = state.get("long_term_memory") or ""

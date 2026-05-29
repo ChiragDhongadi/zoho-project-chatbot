@@ -229,12 +229,12 @@ async def create_task(
     task_payload = {"name": name}
     if description:
         task_payload["description"] = description
-    if owner_id:
-        task_payload["person_responsible"] = owner_id
+    if owner_id and owner_id.strip() and owner_id.strip().isdigit():
+        task_payload["person_responsible"] = owner_id.strip()
     if due_date:
         task_payload["due_date"] = due_date
     if priority:
-        task_payload["priority"] = priority
+        task_payload["priority"] = priority.strip().lower()
 
     try:
         task = await client.create_task(project_id, task_payload)
@@ -267,12 +267,12 @@ async def update_task(
         task_payload["name"] = name
     if description:
         task_payload["description"] = description
-    if owner_id:
-        task_payload["person_responsible"] = owner_id
+    if owner_id and owner_id.strip() and owner_id.strip().isdigit():
+        task_payload["person_responsible"] = owner_id.strip()
     if due_date:
         task_payload["due_date"] = due_date
     if priority:
-        task_payload["priority"] = priority
+        task_payload["priority"] = priority.strip().lower()
 
     try:
         task = await client.update_task(project_id, task_id, task_payload)
