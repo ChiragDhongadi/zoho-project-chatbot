@@ -75,7 +75,8 @@ jobs:
       - name: Deploy Backend to Render
         run: |
           echo "Triggering Render Deployment hook..."
-          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
 
       # B. Frontend Deployment to Vercel
       - name: Deploy Frontend to Vercel
