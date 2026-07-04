@@ -1,0 +1,88 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 1. CI Stage: Build & Test Backend
+  backend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Backend Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Verify Backend Compiles
+        env:
+          PORTKEY_API_KEY: "dummy-key"
+          PORTKEY_CONFIG_ID: "dummy-config"
+          GROQ_API_KEY: "dummy-key"
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+          ZOHO_CLIENT_ID: "dummy"
+          ZOHO_CLIENT_SECRET: "dummy"
+          ZOHO_REDIRECT_URI: "http://localhost"
+          ZOHO_PORTAL_ID: "dummy"
+        run: |
+          python -c "from backend.app.main import app; print('Backend compilation successful!')"
+
+  # 2. CI Stage: Build Frontend
+  frontend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Frontend Assets
+        working-directory: frontend
+        run: npm run build
+
+  # 3. CD Stage: Deploy Backend to Render & Frontend to Vercel
+  deploy:
+    needs: [backend-ci, frontend-ci]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # A. Backend Deployment to Render (via Deploy Hook)
+      - name: Deploy Backend to Render
+        run: |
+          echo "Triggering Render Deployment hook..."
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      # B. Frontend Deployment to Vercel
+      - name: Deploy Frontend to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-project-name: "zoho-project-chatbot-frontend"
+          working-directory: frontend
+          vercel-args: "--prod"
