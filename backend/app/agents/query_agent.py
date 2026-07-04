@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, ToolMessage, AIMessage
 from backend.app.config import settings
 from backend.app.agents.state import AgentState
@@ -10,10 +10,17 @@ from backend.app.agents.tools import (
     get_task_utilisation
 )
 
-model = ChatGroq(
-    api_key=settings.GROQ_API_KEY,
+portkey_headers = {
+    "x-portkey-api-key": settings.PORTKEY_API_KEY,
+    "x-portkey-config": settings.PORTKEY_CONFIG_ID,
+}
+
+model = ChatOpenAI(
+    openai_api_key=settings.PORTKEY_API_KEY,
+    openai_api_base="https://api.portkey.ai/v1",
     model=settings.GROQ_MODEL,
-    temperature=0.0
+    temperature=0.0,
+    default_headers=portkey_headers
 )
 
 READ_TOOLS = {
@@ -24,7 +31,8 @@ READ_TOOLS = {
     "get_task_utilisation": get_task_utilisation
 }
 
-query_agent_llm = model.bind_tools(list(READ_TOOLS.values()))
+query_agent_llm = model.bind_tools(list(READ_TOOLS.values()), parallel_tool_calls=False)
+
 
 SYSTEM_PROMPT = """You are the specialized Query Agent for Zoho Projects.
 Your sole responsibility is to answer READ-ONLY queries (fetching, listing, describing, or summarizing projects, tasks, members, and utilization).
@@ -36,7 +44,9 @@ RULES:
    Then do not make any tool calls.
 3. If the user's message is ambiguous, use your tools to look up the necessary information.
 4. Short-term Memory Context: Pay close attention to previous messages. If a user asks "show tasks for the first one", refer to the project list retrieved earlier, find the first project's ID, and call list_tasks with that project ID.
+5. STRICT ID RESOLUTION & SEQUENTIAL USE: All tool arguments for project_id, task_id, assignee_id, and owner_id are ALWAYS numeric strings (e.g., "453152000000078006"). Never use project names (like "Alpha" or "Beta") or usernames as IDs. If the user asks for information about a project or user by name, you must first call list_projects or list_project_members to find the corresponding numeric ID, then call the target tool with that numeric ID. Do NOT call tools in parallel (e.g., list_projects and list_tasks in the same turn); lookup the ID first, wait for the tool output, and then call the target tool in the next turn.
 """
+
 
 async def query_agent_node(state: AgentState, config) -> dict:
     """

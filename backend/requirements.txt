@@ -10,3 +10,5 @@ langchain-groq==0.1.5
 aiosqlite==0.20.0
 python-multipart==0.0.9
 python-jose[cryptography]==3.3.0
+langchain-openai==0.1.8
+

@@ -12,41 +12,42 @@ class ListProjectsInput(BaseModel):
     pass
 
 class ListTasksInput(BaseModel):
-    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    project_id: str = Field(..., description="The numeric Zoho Project ID (e.g. '453152000000078006'). Do NOT pass the project name.")
     status: Optional[str] = Field(None, description="Filter by status: e.g. 'open' or 'closed'")
-    assignee_id: Optional[str] = Field(None, description="Zoho Owner/User ID to filter tasks by assignee")
+    assignee_id: Optional[str] = Field(None, description="The numeric Zoho Owner/User ID to filter tasks (e.g. '60073289011'). Do NOT pass the username.")
     due_date: Optional[str] = Field(None, description="Filter by due date format (MM-DD-YYYY)")
 
 class GetTaskDetailsInput(BaseModel):
-    project_id: str = Field(..., description="Zoho Project ID (Required)")
-    task_id: str = Field(..., description="Zoho Task ID (Required)")
+    project_id: str = Field(..., description="The numeric Zoho Project ID (e.g. '453152000000078006'). Do NOT pass the project name.")
+    task_id: str = Field(..., description="The numeric Zoho Task ID (e.g. '453152000000079024'). Do NOT pass the task name.")
 
 class ListProjectMembersInput(BaseModel):
-    project_id: Optional[str] = Field(None, description="Filter members by specific Zoho Project ID (Optional)")
+    project_id: Optional[str] = Field(None, description="Filter members by specific numeric Zoho Project ID (Optional). Do NOT pass the project name.")
 
 class GetTaskUtilisationInput(BaseModel):
-    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    project_id: str = Field(..., description="The numeric Zoho Project ID (e.g. '453152000000078006'). Do NOT pass the project name.")
 
 class CreateTaskInput(BaseModel):
-    project_id: str = Field(..., description="Zoho Project ID (Required)")
+    project_id: str = Field(..., description="The numeric Zoho Project ID (e.g. '453152000000078006'). Do NOT pass the project name.")
     name: str = Field(..., description="Task title/name (Required)")
     description: Optional[str] = Field(None, description="Task description")
-    owner_id: Optional[str] = Field(None, description="Zoho User ID to assign this task to")
+    owner_id: Optional[str] = Field(None, description="The numeric Zoho User ID to assign this task to. Do NOT pass the username.")
     due_date: Optional[str] = Field(None, description="Format: MM-DD-YYYY")
     priority: Optional[str] = Field(None, description="Task priority: 'None', 'Low', 'Medium', 'High'")
 
 class UpdateTaskInput(BaseModel):
-    project_id: str = Field(..., description="Zoho Project ID (Required)")
-    task_id: str = Field(..., description="Zoho Task ID to modify (Required)")
+    project_id: str = Field(..., description="The numeric Zoho Project ID (e.g. '453152000000078006'). Do NOT pass the project name.")
+    task_id: str = Field(..., description="The numeric Zoho Task ID to modify (e.g. '453152000000079024'). Do NOT pass the task name.")
     name: Optional[str] = Field(None, description="New name for the task")
     description: Optional[str] = Field(None, description="New description")
-    owner_id: Optional[str] = Field(None, description="New assignee Zoho User ID")
+    owner_id: Optional[str] = Field(None, description="New assignee numeric Zoho User ID. Do NOT pass the username.")
     due_date: Optional[str] = Field(None, description="Format: MM-DD-YYYY")
     priority: Optional[str] = Field(None, description="Task priority: 'None', 'Low', 'Medium', 'High'")
 
 class DeleteTaskInput(BaseModel):
-    project_id: str = Field(..., description="Zoho Project ID (Required)")
-    task_id: str = Field(..., description="Zoho Task ID to delete (Required)")
+    project_id: str = Field(..., description="The numeric Zoho Project ID (e.g. '453152000000078006'). Do NOT pass the project name.")
+    task_id: str = Field(..., description="The numeric Zoho Task ID to delete (e.g. '453152000000079024'). Do NOT pass the task name.")
+
 
 
 # READ-ONLY TOOLS (Query Agent Tools)

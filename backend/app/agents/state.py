@@ -11,3 +11,6 @@ class AgentState(TypedDict):
     pending_action: Optional[Dict[str, Any]]
     action_confirmed: Optional[bool]
     long_term_memory: Optional[str]
+    routing_decision: Optional[str]
+    guardrail_blocked: Optional[bool]
+

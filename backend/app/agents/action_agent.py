@@ -1,13 +1,20 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, ToolMessage, AIMessage
 from backend.app.config import settings
 from backend.app.agents.state import AgentState
 from backend.app.agents.tools import create_task, update_task, delete_task
 
-model = ChatGroq(
-    api_key=settings.GROQ_API_KEY,
+portkey_headers = {
+    "x-portkey-api-key": settings.PORTKEY_API_KEY,
+    "x-portkey-config": settings.PORTKEY_CONFIG_ID,
+}
+
+model = ChatOpenAI(
+    openai_api_key=settings.PORTKEY_API_KEY,
+    openai_api_base="https://api.portkey.ai/v1",
     model=settings.GROQ_MODEL,
-    temperature=0.0
+    temperature=0.0,
+    default_headers=portkey_headers
 )
 
 WRITE_TOOLS = {
@@ -16,15 +23,17 @@ WRITE_TOOLS = {
     "delete_task": delete_task
 }
 
-action_agent_llm = model.bind_tools(list(WRITE_TOOLS.values()))
+action_agent_llm = model.bind_tools(list(WRITE_TOOLS.values()), parallel_tool_calls=False)
+
 
 SYSTEM_PROMPT = """You are the specialized Action Agent for Zoho Projects.
 Your sole responsibility is to handle WRITE requests (creating, updating, assigning, or deleting tasks).
 
 RULES:
-1. You are strictly a WRITE agent. You MUST NOT attempt to fetch or list general projects or members unless it is directly required to complete a write operation.
-2. Short-term Memory Context: Pay close attention to previous messages. If a user asks to "delete task #5" and there is a task #5 listed under project 'P1' earlier, assume the project_id is 'P1'.
+1. You are strictly a WRITE agent. You MUST NOT attempt to fetch or list general projects or members unless it is directly required to complete a write operation. Finding the numeric ID of a project or user is a valid exception and is required before writing.
+2. Short-term Memory Context: Pay close attention to previous messages. If a user asks to "delete task #5" and there is a task #5 listed under project 'P1' earlier, retrieve the numeric ID of project 'P1' and task #5 from the conversation history.
 3. Always ask the user for details if fields are missing, but once you have them, call the appropriate tool.
+4. STRICT ID RESOLUTION & SEQUENTIAL USE: All tool arguments for project_id, task_id, assignee_id, and owner_id are ALWAYS numeric strings (e.g., "453152000000078006"). Never use project names (like "Alpha" or "Beta") or usernames as IDs. If you do not have the numeric ID, you must first call list_projects or list_project_members to find the numeric ID before invoking the write operation tools. Do NOT call tools in parallel; lookup the ID first, wait for the tool output, and then call the target tool in the next turn.
 """
 
 async def action_agent_node(state: AgentState, config) -> dict:
