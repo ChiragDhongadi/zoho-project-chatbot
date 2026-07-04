@@ -51,3 +51,4 @@ if settings.LANGCHAIN_TRACING_V2.lower() == "true":
     if settings.LANGCHAIN_ENDPOINT:
         os.environ["LANGCHAIN_ENDPOINT"] = settings.LANGCHAIN_ENDPOINT
 
+# testing githb actions pipeline
