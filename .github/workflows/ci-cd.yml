@@ -86,7 +86,7 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-project-name: "zoho-project-chatbot-frontend"
-          working-directory: frontend
           vercel-args: "--prod"
           vercel-version: "latest"
+
 
