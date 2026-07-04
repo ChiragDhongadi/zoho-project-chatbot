@@ -88,3 +88,5 @@ jobs:
           vercel-project-name: "zoho-project-chatbot-frontend"
           working-directory: frontend
           vercel-args: "--prod"
+          vercel-version: "latest"
+
