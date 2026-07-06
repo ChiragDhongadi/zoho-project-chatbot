@@ -93,7 +93,8 @@ async def callback(
     )
     await db.commit()
 
-    frontend_url = f"http://localhost:5173?session_id={session_id}"
+    base_frontend_url = settings.FRONTEND_URL.rstrip("/")
+    frontend_url = f"{base_frontend_url}?session_id={session_id}"
     
     response = RedirectResponse(url=frontend_url)
     

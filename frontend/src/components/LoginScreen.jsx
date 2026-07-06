@@ -1,10 +1,11 @@
 import React from 'react';
 import { Shield, Sparkles, Database, Layers } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 function LoginScreen() {
     const handleLogin = () => {
         // Redirect to the FastAPI Backend OAuth entrance!
-        window.location.href = 'http://localhost:8000/auth/login';
+        window.location.href = `${API_BASE_URL}/auth/login`;
     };
 
     return (

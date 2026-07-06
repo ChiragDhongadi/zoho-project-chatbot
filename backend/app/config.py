@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     HOST: str = Field(default="127.0.0.1")
     PORT: int = Field(default=8000)
     SECRET_KEY: str = Field(default="super-secret-key-change-in-production")
+    FRONTEND_URL: str = Field(default="http://localhost:5173")
 
     # zoho oauth 
     ZOHO_CLIENT_ID: str

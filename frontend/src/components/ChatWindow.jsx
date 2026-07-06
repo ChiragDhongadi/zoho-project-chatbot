@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, LogOut, MessageSquare, Bot, User, Sparkles } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
+import { API_BASE_URL } from '../config';
 
 function ChatWindow({ sessionId, onLogout }) {
     const [messages, setMessages] = useState([
@@ -31,7 +32,7 @@ function ChatWindow({ sessionId, onLogout }) {
     useEffect(() => {
         const verifySession = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/auth/session?session_id=${sessionId}`);
+                const response = await fetch(`${API_BASE_URL}/auth/session?session_id=${sessionId}`);
                 if (!response.ok) {
                     onLogout();
                 } else {
@@ -55,7 +56,7 @@ function ChatWindow({ sessionId, onLogout }) {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8000/chat', {
+            const response = await fetch(`${API_BASE_URL}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -90,7 +91,7 @@ function ChatWindow({ sessionId, onLogout }) {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8000/chat/confirm', {
+            const response = await fetch(`${API_BASE_URL}/chat/confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
