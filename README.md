@@ -1,4 +1,5 @@
 # AI-Powered Zoho Projects Chatbot
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_Project-00C853?style=for-the-badge&logo=vercel&logoColor=white)](https://zoho-project-chatbot.vercel.app/)
 
 A state-of-the-art, conversational AI assistant that connects to Zoho Projects via its REST API (specifically tailored for the **Zoho India Region**). Users authenticate with their own Zoho accounts via a secure OAuth 2.0 flow, interacting with a stateful multi-agent LangGraph system running on FastAPI and a premium, responsive glassmorphic React frontend.
 
